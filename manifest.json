@@ -1,0 +1,31 @@
+{
+  "name": "Dimaag Ki Battery - Quiz",
+  "short_name": "Dimaag Battery",
+  "description": "Hindi aur English mein khela jaane wala ek fun unlimited quiz game — General Knowledge, Science aur Movies categories ke saath.",
+  "start_url": "/index.html",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#12163B",
+  "theme_color": "#12163B",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
