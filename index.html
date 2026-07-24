@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Dimaag Ki Battery — Quiz</title>
-<meta name="description" content="Hindi aur English mein khela jaane wala fun unlimited quiz game — General Knowledge, Science aur Movies categories ke saath.">
+<meta name="description" content="Hindi aur English mein khela jaane wala fun unlimited quiz game — 12 categories, 300+ questions, sound effects aur high score ke saath.">
 <meta name="theme-color" content="#12163B">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
@@ -86,6 +86,15 @@
     margin-bottom:14px;
     font-size:18px;
   }
+  .high-score-row{
+    text-align:center;
+    font-family:'Space Grotesk';
+    font-size:11.5px;
+    color:var(--gold);
+    letter-spacing:1px;
+    text-transform:uppercase;
+    margin:-8px 0 12px;
+  }
   .life-heart{ transition:transform .2s ease; }
   .life-heart.lost{ opacity:0.25; transform:scale(0.85); filter:grayscale(1); }
   .life-heart.shake{ animation:heartShake .4s ease; }
@@ -146,8 +155,13 @@
     display:grid;
     grid-template-columns:1fr 1fr 1fr;
     gap:10px;
-    margin-bottom:26px;
+    margin-bottom:18px;
+    max-height:44vh;
+    overflow-y:auto;
+    padding:2px 2px 6px;
   }
+  .cat-grid::-webkit-scrollbar{ width:4px; }
+  .cat-grid::-webkit-scrollbar-thumb{ background:rgba(255,255,255,0.2); border-radius:4px; }
   .cat-btn{
     position:relative;
     aspect-ratio:3/4.2;
@@ -218,6 +232,17 @@
   .poster-gk{ background:radial-gradient(circle at 30% 20%, #4A5AE8 0%, #1a1e4d 70%); }
   .poster-sci{ background:radial-gradient(circle at 30% 20%, #1FBF9F 0%, #0e3d3a 70%); }
   .poster-mov{ background:radial-gradient(circle at 30% 20%, #FF6B6B 0%, #4a1530 70%); }
+  .poster-sports{ background:radial-gradient(circle at 30% 20%, #F5A623 0%, #4d2e05 70%); }
+  .poster-history{ background:radial-gradient(circle at 30% 20%, #B08D57 0%, #3d2e17 70%); }
+  .poster-geo{ background:radial-gradient(circle at 30% 20%, #2FA5D8 0%, #0d2e42 70%); }
+  .poster-tech{ background:radial-gradient(circle at 30% 20%, #7B61FF 0%, #241a4d 70%); }
+  .poster-animals{ background:radial-gradient(circle at 30% 20%, #6FBF4A 0%, #1e3d0e 70%); }
+  .poster-food{ background:radial-gradient(circle at 30% 20%, #FF8A5C 0%, #4d2210 70%); }
+  .poster-festivals{ background:radial-gradient(circle at 30% 20%, #E84C88 0%, #4d1230 70%); }
+  .poster-music{ background:radial-gradient(circle at 30% 20%, #C864FA 0%, #33104d 70%); }
+  .poster-space{ background:radial-gradient(circle at 30% 20%, #4a4ae8 0%, #0a0a2e 70%); }
+  .poster-maths{ background:radial-gradient(circle at 30% 20%, #FF4B7E 0%, #4d0d24 70%); }
+  .poster-hindi{ background:radial-gradient(circle at 30% 20%, #FFB347 0%, #4d3208 70%); }
 
   .play-btn{
     width:100%;
@@ -386,29 +411,31 @@
   .result-bars{ display:flex; gap:5px; justify-content:center; margin:20px 0 28px; flex-wrap:wrap; }
   .result-stats{
     display:flex;
+    flex-wrap:wrap;
     justify-content:center;
-    gap:10px;
+    gap:8px;
     margin:20px 0 28px;
   }
   .stat-box{
     flex:1;
-    max-width:110px;
+    min-width:70px;
+    max-width:100px;
     background:rgba(255,255,255,0.05);
     border:1px solid rgba(255,255,255,0.1);
     border-radius:14px;
-    padding:12px 6px;
+    padding:10px 4px;
   }
   .stat-num{
     font-family:'Space Grotesk';
     font-weight:700;
-    font-size:20px;
+    font-size:18px;
   }
   .stat-label{
-    font-size:11px;
+    font-size:10px;
     color:var(--muted);
     margin-top:2px;
     text-transform:uppercase;
-    letter-spacing:1px;
+    letter-spacing:0.5px;
   }
 
   .ghost-btn{
@@ -457,6 +484,7 @@
       <div class="qcounter" id="qCounter">Q1</div>
       <div class="score-chip" id="scoreChip">Score: 0</div>
     </div>
+    <div class="high-score-row" id="highScoreRow">Best: 0</div>
 
     <div class="lives-row" id="livesRow"></div>
 
@@ -501,6 +529,8 @@ const UI_STRINGS = {
     catLabel: "Category chuno",
     startBtn: "Shuru Karo →",
     scorePrefix: "Score: ",
+    bestPrefix: "Best: ",
+    newHigh: "🎉 Naya High Score!",
     retryBtn: "Dobara Khelo",
     changeCatBtn: "Category Badlo",
     outOf: "sahi jawab",
@@ -522,6 +552,8 @@ const UI_STRINGS = {
     catLabel: "Choose a category",
     startBtn: "Start Quiz →",
     scorePrefix: "Score: ",
+    bestPrefix: "Best: ",
+    newHigh: "🎉 New High Score!",
     retryBtn: "Play Again",
     changeCatBtn: "Change Category",
     outOf: "correct answers",
@@ -540,13 +572,24 @@ const UI_STRINGS = {
 };
 
 const CATEGORY_NAMES = {
-  hi: {gk:"General Knowledge", sci:"Science", mov:"Movies"},
-  en: {gk:"General Knowledge", sci:"Science", mov:"Movies"}
+  hi: {gk:"General Knowledge", sci:"Science", mov:"Movies", sports:"Sports", history:"History", geo:"Geography", tech:"Technology", animals:"Animals & Nature", food:"Food & Cuisine", festivals:"Festivals & Culture", music:"Music", space:"Space", maths:"Maths", hindi:"Hindi Bhasha"},
+  en: {gk:"General Knowledge", sci:"Science", mov:"Movies", sports:"Sports", history:"History", geo:"Geography", tech:"Technology", animals:"Animals & Nature", food:"Food & Cuisine", festivals:"Festivals & Culture", music:"Music", space:"Space", maths:"Maths", hindi:"Hindi Bhasha"}
 };
 const CATEGORY_META = {
   gk:  {icon:"🌍", cls:"poster-gk",  tag_hi:"Jahan Sabki Chalti Hai", tag_en:"Know It All"},
   sci: {icon:"🔬", cls:"poster-sci", tag_hi:"Dimaag Ki Lab",         tag_en:"The Lab Files"},
-  mov: {icon:"🎬", cls:"poster-mov", tag_hi:"Lights Camera Trivia",  tag_en:"Lights Camera Trivia"}
+  mov: {icon:"🎬", cls:"poster-mov", tag_hi:"Lights Camera Trivia",  tag_en:"Lights Camera Trivia"},
+  sports: {icon:"🏆", cls:"poster-sports", tag_hi:"Khel Ka Maidan", tag_en:"Game On"},
+  history: {icon:"🏛️", cls:"poster-history", tag_hi:"Beete Waqt Ki Kahani", tag_en:"Tales of Time"},
+  geo: {icon:"🗺️", cls:"poster-geo", tag_hi:"Duniya Ka Naksha", tag_en:"World Map"},
+  tech: {icon:"💻", cls:"poster-tech", tag_hi:"Digital Duniya", tag_en:"Digital World"},
+  animals: {icon:"🐘", cls:"poster-animals", tag_hi:"Jungle Ki Duniya", tag_en:"Wild World"},
+  food: {icon:"🍜", cls:"poster-food", tag_hi:"Zaayka Zone", tag_en:"Flavor Zone"},
+  festivals: {icon:"🎉", cls:"poster-festivals", tag_hi:"Tyohaar Time", tag_en:"Celebration Time"},
+  music: {icon:"🎵", cls:"poster-music", tag_hi:"Sur Aur Taal", tag_en:"Rhythm & Beats"},
+  space: {icon:"🚀", cls:"poster-space", tag_hi:"Antariksh Ki Sair", tag_en:"Space Odyssey"},
+  maths: {icon:"➗", cls:"poster-maths", tag_hi:"Ginti Ka Khel", tag_en:"Number Game"},
+  hindi: {icon:"📖", cls:"poster-hindi", tag_hi:"Hindi Bhasha Gyan", tag_en:"Hindi Language"},
 };
 
 const QUESTION_BANK = {
@@ -565,428 +608,4 @@ const QUESTION_BANK = {
       {q:"Bharat ka rashtriya pashu kaunsa hai?", opts:["Sher","Bagh","Hathi","Cheeta"], a:1},
       {q:"Duniya ka sabse ऊँcha parvat kaunsa hai?", opts:["K2","Kanchenjunga","Everest","Makalu"], a:2},
       {q:"Bharat mein kul kitne rajya hain?", opts:["28","29","27","26"], a:0},
-      {q:"Sabse bada mahasagar kaunsa hai?", opts:["Atlantic","Hind Mahasagar","Pacific","Arctic"], a:2},
-      {q:"'Statue of Unity' kis neta ki hai?", opts:["Nehru","Sardar Patel","Gandhi","Bose"], a:1},
-      {q:"Olympic Games kitne saal mein ek baar hote hain?", opts:["2","3","4","5"], a:2},
-      {q:"Bharat ki sabse lambi nadi kaunsi hai?", opts:["Yamuna","Ganga","Godavari","Brahmaputra"], a:1},
-      {q:"Sabse zyada aabaadi wala desh kaunsa hai?", opts:["China","USA","India","Indonesia"], a:2},
-      {q:"Rashtrapati Bhawan kis shehar mein hai?", opts:["Mumbai","Nayi Dilli","Chennai","Kolkata"], a:1},
-    ],
-    sci: [
-      {q:"Paani ka chemical formula kya hai?", opts:["CO2","H2O","O2","NaCl"], a:1},
-      {q:"Insaan ka dil kitne chambers ka hota hai?", opts:["2","3","4","5"], a:2},
-      {q:"Prakash ki speed lagbhag kitni hai?", opts:["3 lakh km/s","3000 km/s","30,000 km/s","3 crore km/s"], a:0},
-      {q:"Photosynthesis kaunsa gas release karta hai?", opts:["CO2","Nitrogen","Oxygen","Hydrogen"], a:2},
-      {q:"Sabse halka gas kaunsa hai?", opts:["Oxygen","Hydrogen","Helium","Nitrogen"], a:1},
-      {q:"DNA ka full form kya hai?", opts:["Deoxyribo Nucleic Acid","Dynamic Nuclear Atom","Di-Nucleic Acid","Deoxy Nitrogen Acid"], a:0},
-      {q:"Gravity ki khoj kisne ki?", opts:["Einstein","Newton","Galileo","Tesla"], a:1},
-      {q:"Insaan ke sharir ka normal temperature?", opts:["37°C","40°C","35°C","39°C"], a:0},
-      {q:"Sabse bada organ kaunsa hai?", opts:["Dil","Dimaag","Skin","Liver"], a:2},
-      {q:"Battery kis energy ko store karti hai?", opts:["Kinetic","Chemical","Thermal","Nuclear"], a:1},
-      {q:"Insaan kitne saal mein sabse zyada lambai badhta hai (average)?", opts:["0-2 saal","5-8 saal","12-16 saal","20-25 saal"], a:2},
-      {q:"Sabse zyada gas hamari atmosphere mein kaunsa hai?", opts:["Oxygen","Carbon Dioxide","Nitrogen","Hydrogen"], a:2},
-      {q:"Blood mein oxygen kaun le jata hai?", opts:["White blood cells","Platelets","Red blood cells","Plasma"], a:2},
-      {q:"pH scale kya measure karta hai?", opts:["Temperature","Acidity/Alkalinity","Density","Pressure"], a:1},
-      {q:"Sabse tez dhaatu (metal) conductor kaunsi hai?", opts:["Copper","Gold","Silver","Aluminium"], a:2},
-      {q:"Insaan ke sharir mein sabse chhoti haddi kahan hai?", opts:["Kaan mein","Nose mein","Finger mein","Toe mein"], a:0},
-      {q:"Chandrayaan mission kis desh ka hai?", opts:["USA","Russia","India","China"], a:2},
-      {q:"Ek normal insaan ka dil ek minute mein kitni baar dhadakta hai?", opts:["40-50","60-100","120-140","150-170"], a:1},
-      {q:"Vitamin C ka sabse acha source kya hai?", opts:["Doodh","Santra","Chawal","Aloo"], a:1},
-    ],
-    mov: [
-      {q:"'3 Idiots' movie kis par based thi?", opts:["Novel 'Five Point Someone'","True story","Comic book","Play"], a:0},
-      {q:"Bollywood ka pehla superstar kise kaha jata hai?", opts:["Amitabh Bachchan","Rajesh Khanna","Dilip Kumar","Shah Rukh Khan"], a:1},
-      {q:"'Sholay' film kis saal release hui thi?", opts:["1970","1975","1980","1985"], a:1},
-      {q:"Oscar award ka doosra naam kya hai?", opts:["Golden Globe","Academy Award","Emmy","BAFTA"], a:1},
-      {q:"'Dangal' film kis sport par thi?", opts:["Boxing","Wrestling","Cricket","Hockey"], a:1},
-      {q:"Sabse zyada Oscar jeetne wali film kaunsi si hai (record holder mein se ek)?", opts:["Titanic","Avatar","Ben-Hur","Avengers"], a:0},
-      {q:"RRR film ka song 'Naatu Naatu' ne kaunsa award jeeta?", opts:["Grammy","Oscar (Best Original Song)","BAFTA","Emmy"], a:1},
-      {q:"Pehli Indian animated feature film kaunsi thi?", opts:["Hanuman","Chhota Bheem","Ramayana: The Legend of Prince Rama","Bal Ganesh"], a:0},
-      {q:"'Lagaan' film mein khel dikhaya gaya tha?", opts:["Hockey","Cricket","Kabaddi","Football"], a:1},
-      {q:"Marvel Cinematic Universe ki pehli film kaunsi thi?", opts:["Thor","Iron Man","Captain America","Hulk"], a:1},
-      {q:"'Baahubali' film kis language mein pehle bani thi?", opts:["Hindi","Tamil","Telugu","Kannada"], a:2},
-      {q:"Sabse zyada National Film Award kisne jeete hain (actor)?", opts:["Amitabh Bachchan","Kamal Haasan","Mammootty","Sanjeev Kumar"], a:1},
-      {q:"'PK' film mein alien ka role kisne kiya tha?", opts:["Salman Khan","Aamir Khan","Shah Rukh Khan","Hrithik Roshan"], a:1},
-      {q:"Disney ki pehli animated feature film kaunsi thi?", opts:["Snow White","Cinderella","Pinocchio","Bambi"], a:0},
-      {q:"'Gully Boy' film kis pe based thi?", opts:["Real rapper's life","Novel","Play","True crime"], a:0},
-      {q:"Sabse zyada kamai karne wali Bollywood film (record ke time) kaunsi thi?", opts:["Dangal","Baahubali 2 (Hindi)","PK","Sultan"], a:0},
-      {q:"'Jurassic Park' film kis director ne banayi thi?", opts:["James Cameron","Steven Spielberg","George Lucas","Christopher Nolan"], a:1},
-      {q:"IIFA Awards kis industry se related hain?", opts:["Hollywood","Bollywood","South Cinema","Tollywood"], a:1},
-      {q:"'Avengers: Endgame' kis saal release hui thi?", opts:["2017","2018","2019","2020"], a:2},
-    ],
-  },
-  en: {
-    gk: [
-      {q:"What is the capital of India?", opts:["Mumbai","New Delhi","Kolkata","Chennai"], a:1},
-      {q:"Which is the largest planet?", opts:["Mars","Earth","Jupiter","Saturn"], a:2},
-      {q:"Which city is the Taj Mahal in?", opts:["Agra","Jaipur","Lucknow","Delhi"], a:0},
-      {q:"How many bones are in the human body?", opts:["186","206","220","150"], a:1},
-      {q:"Which is the longest river?", opts:["Ganges","Amazon","Nile","Yamuna"], a:2},
-      {q:"What is the official national sport of India?", opts:["Cricket","Kabaddi","Hockey","Football"], a:2},
-      {q:"Which planet is closest to the sun?", opts:["Venus","Mercury","Earth","Mars"], a:1},
-      {q:"Who is called the 'Father of the Nation' in India?", opts:["Nehru","Bhagat Singh","Mahatma Gandhi","Sardar Patel"], a:2},
-      {q:"How many months are there in a year?", opts:["10","12","11","13"], a:1},
-      {q:"Which is the smallest country by area?", opts:["Monaco","Vatican City","Nauru","San Marino"], a:1},
-      {q:"What is India's national animal?", opts:["Lion","Tiger","Elephant","Cheetah"], a:1},
-      {q:"What is the tallest mountain in the world?", opts:["K2","Kanchenjunga","Everest","Makalu"], a:2},
-      {q:"How many states does India have?", opts:["28","29","27","26"], a:0},
-      {q:"Which is the largest ocean?", opts:["Atlantic","Indian Ocean","Pacific","Arctic"], a:2},
-      {q:"Whom is the 'Statue of Unity' dedicated to?", opts:["Nehru","Sardar Patel","Gandhi","Bose"], a:1},
-      {q:"How often are the Olympic Games held?", opts:["Every 2 years","Every 3 years","Every 4 years","Every 5 years"], a:2},
-      {q:"Which is India's longest river?", opts:["Yamuna","Ganges","Godavari","Brahmaputra"], a:1},
-      {q:"Which is the most populous country?", opts:["China","USA","India","Indonesia"], a:2},
-      {q:"Which city is the Rashtrapati Bhavan (Presidential Palace) in?", opts:["Mumbai","New Delhi","Chennai","Kolkata"], a:1},
-    ],
-    sci: [
-      {q:"What is the chemical formula of water?", opts:["CO2","H2O","O2","NaCl"], a:1},
-      {q:"How many chambers does the human heart have?", opts:["2","3","4","5"], a:2},
-      {q:"What is the approximate speed of light?", opts:["3 lakh km/s","3000 km/s","30,000 km/s","3 crore km/s"], a:0},
-      {q:"Which gas is released during photosynthesis?", opts:["CO2","Nitrogen","Oxygen","Hydrogen"], a:2},
-      {q:"Which is the lightest gas?", opts:["Oxygen","Hydrogen","Helium","Nitrogen"], a:1},
-      {q:"What does DNA stand for?", opts:["Deoxyribo Nucleic Acid","Dynamic Nuclear Atom","Di-Nucleic Acid","Deoxy Nitrogen Acid"], a:0},
-      {q:"Who discovered gravity?", opts:["Einstein","Newton","Galileo","Tesla"], a:1},
-      {q:"What is the normal human body temperature?", opts:["37°C","40°C","35°C","39°C"], a:0},
-      {q:"Which is the largest organ of the body?", opts:["Heart","Brain","Skin","Liver"], a:2},
-      {q:"What kind of energy does a battery store?", opts:["Kinetic","Chemical","Thermal","Nuclear"], a:1},
-      {q:"During which years do humans grow the fastest (on average)?", opts:["0-2 years","5-8 years","12-16 years","20-25 years"], a:2},
-      {q:"Which gas is most abundant in our atmosphere?", opts:["Oxygen","Carbon Dioxide","Nitrogen","Hydrogen"], a:2},
-      {q:"What carries oxygen in the blood?", opts:["White blood cells","Platelets","Red blood cells","Plasma"], a:2},
-      {q:"What does the pH scale measure?", opts:["Temperature","Acidity/Alkalinity","Density","Pressure"], a:1},
-      {q:"Which metal is the best electrical conductor?", opts:["Copper","Gold","Silver","Aluminium"], a:2},
-      {q:"Where is the smallest bone in the human body located?", opts:["Ear","Nose","Finger","Toe"], a:0},
-      {q:"Which country's mission is Chandrayaan?", opts:["USA","Russia","India","China"], a:2},
-      {q:"How many times does a normal human heart beat per minute?", opts:["40-50","60-100","120-140","150-170"], a:1},
-      {q:"Which is a great source of Vitamin C?", opts:["Milk","Orange","Rice","Potato"], a:1},
-    ],
-    mov: [
-      {q:"'3 Idiots' was based on which novel?", opts:["'Five Point Someone'","A true story","A comic book","A play"], a:0},
-      {q:"Who is considered Bollywood's first superstar?", opts:["Amitabh Bachchan","Rajesh Khanna","Dilip Kumar","Shah Rukh Khan"], a:1},
-      {q:"Which year was the film 'Sholay' released?", opts:["1970","1975","1980","1985"], a:1},
-      {q:"What is another name for the Oscar award?", opts:["Golden Globe","Academy Award","Emmy","BAFTA"], a:1},
-      {q:"Which sport was the film 'Dangal' about?", opts:["Boxing","Wrestling","Cricket","Hockey"], a:1},
-      {q:"Which film holds one of the records for most Oscars won?", opts:["Titanic","Avatar","Ben-Hur","Avengers"], a:0},
-      {q:"Which award did the song 'Naatu Naatu' from RRR win?", opts:["Grammy","Oscar (Best Original Song)","BAFTA","Emmy"], a:1},
-      {q:"What was India's first animated feature film?", opts:["Hanuman","Chhota Bheem","Ramayana: The Legend of Prince Rama","Bal Ganesh"], a:0},
-      {q:"Which sport was featured in the film 'Lagaan'?", opts:["Hockey","Cricket","Kabaddi","Football"], a:1},
-      {q:"Which was the first film in the Marvel Cinematic Universe?", opts:["Thor","Iron Man","Captain America","Hulk"], a:1},
-      {q:"In which language was 'Baahubali' originally made?", opts:["Hindi","Tamil","Telugu","Kannada"], a:2},
-      {q:"Who has won the most National Film Awards among actors?", opts:["Amitabh Bachchan","Kamal Haasan","Mammootty","Sanjeev Kumar"], a:1},
-      {q:"Who played the alien's role in the film 'PK'?", opts:["Salman Khan","Aamir Khan","Shah Rukh Khan","Hrithik Roshan"], a:1},
-      {q:"What was Disney's first animated feature film?", opts:["Snow White","Cinderella","Pinocchio","Bambi"], a:0},
-      {q:"What was the film 'Gully Boy' based on?", opts:["A real rapper's life","A novel","A play","A true crime story"], a:0},
-      {q:"Which was the highest-grossing Bollywood film (at the time of its record)?", opts:["Dangal","Baahubali 2 (Hindi)","PK","Sultan"], a:0},
-      {q:"Who directed the film 'Jurassic Park'?", opts:["James Cameron","Steven Spielberg","George Lucas","Christopher Nolan"], a:1},
-      {q:"Which film industry are the IIFA Awards related to?", opts:["Hollywood","Bollywood","South Cinema","Tollywood"], a:1},
-      {q:"Which year was 'Avengers: Endgame' released?", opts:["2017","2018","2019","2020"], a:2},
-    ]
-  }
-};
-
-let currentLang = "hi";
-let currentCatKey = "gk";
-let questions = [];
-let qIndex = 0;
-let questionsAsked = 0;
-let score = 0;
-let wrong = 0;
-let bestStreak = 0;
-let curStreak = 0;
-let timerInterval = null;
-let timeLeft = 15;
-const TOTAL_TIME = 15;
-const CIRC = 138;
-const MAX_LIVES = 3;
-let lives = MAX_LIVES;
-let soundOn = true;
-let endedByGameOver = false;
-
-// ---------- Sound engine (Web Audio API, no external files) ----------
-let audioCtx = null;
-function getCtx(){
-  if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  if(audioCtx.state === 'suspended') audioCtx.resume();
-  return audioCtx;
-}
-function tone(freq, duration, type, startTime, gainVal){
-  const ctx = getCtx();
-  const osc = ctx.createOscillator();
-  const gain = ctx.createGain();
-  osc.type = type || 'sine';
-  osc.frequency.setValueAtTime(freq, ctx.currentTime + (startTime||0));
-  gain.gain.setValueAtTime(gainVal||0.15, ctx.currentTime + (startTime||0));
-  gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + (startTime||0) + duration);
-  osc.connect(gain).connect(ctx.destination);
-  osc.start(ctx.currentTime + (startTime||0));
-  osc.stop(ctx.currentTime + (startTime||0) + duration);
-}
-function playCorrect(){
-  if(!soundOn) return;
-  tone(660, 0.12, 'sine', 0, 0.16);
-  tone(880, 0.16, 'sine', 0.1, 0.16);
-}
-function playWrong(){
-  if(!soundOn) return;
-  tone(220, 0.28, 'sawtooth', 0, 0.13);
-  tone(160, 0.3, 'sawtooth', 0.08, 0.12);
-}
-function playTick(){
-  if(!soundOn) return;
-  tone(880, 0.05, 'square', 0, 0.06);
-}
-function playClick(){
-  if(!soundOn) return;
-  tone(500, 0.06, 'sine', 0, 0.08);
-}
-function playGameOver(){
-  if(!soundOn) return;
-  tone(392, 0.2, 'triangle', 0, 0.15);
-  tone(330, 0.2, 'triangle', 0.18, 0.15);
-  tone(262, 0.35, 'triangle', 0.36, 0.15);
-}
-function playFinish(){
-  if(!soundOn) return;
-  tone(523, 0.15, 'sine', 0, 0.15);
-  tone(659, 0.15, 'sine', 0.12, 0.15);
-  tone(784, 0.3, 'sine', 0.24, 0.15);
-}
-
-const screens = {
-  start: document.getElementById('screen-start'),
-  quiz: document.getElementById('screen-quiz'),
-  result: document.getElementById('screen-result')
-};
-function showScreen(name){
-  Object.values(screens).forEach(s=>s.classList.remove('active'));
-  screens[name].classList.add('active');
-}
-
-// Build category buttons
-const catGrid = document.getElementById('catGrid');
-function renderCategoryButtons(){
-  catGrid.innerHTML = '';
-  const names = CATEGORY_NAMES[currentLang];
-  Object.keys(names).forEach(key=>{
-    const meta = CATEGORY_META[key];
-    const tag = currentLang === 'hi' ? meta.tag_hi : meta.tag_en;
-    const btn = document.createElement('button');
-    btn.className = 'cat-btn' + (key===currentCatKey ? ' selected':'');
-    btn.innerHTML = `
-      <div class="poster-art ${meta.cls}">
-        <div class="poster-icon">${meta.icon}</div>
-        <div class="poster-title">${names[key]}</div>
-        <div class="poster-tag">${tag}</div>
-      </div>
-      <div class="poster-sheen"></div>
-      <div class="poster-band">HIT</div>
-    `;
-    btn.onclick = ()=>{
-      playClick();
-      currentCatKey = key;
-      document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('selected'));
-      btn.classList.add('selected');
-    };
-    catGrid.appendChild(btn);
-  });
-}
-
-function renderLives(){
-  const row = document.getElementById('livesRow');
-  row.innerHTML = '';
-  for(let i=0;i<MAX_LIVES;i++){
-    const span = document.createElement('span');
-    span.className = 'life-heart' + (i >= lives ? ' lost' : '');
-    span.textContent = '❤️';
-    row.appendChild(span);
-  }
-}
-function loseLife(){
-  lives--;
-  const row = document.getElementById('livesRow');
-  const hearts = row.querySelectorAll('.life-heart');
-  renderLives();
-  const newHearts = row.querySelectorAll('.life-heart');
-  if(newHearts[lives]) newHearts[lives].classList.add('shake');
-}
-
-document.getElementById('soundToggle').onclick = ()=>{
-  soundOn = !soundOn;
-  document.getElementById('soundToggle').textContent = soundOn ? '🔊' : '🔇';
-  if(soundOn) playClick();
-};
-
-function applyLanguage(){
-  const s = UI_STRINGS[currentLang];
-  document.getElementById('titleText').innerHTML = s.titleHtml;
-  document.getElementById('subtitleText').textContent = s.subtitle;
-  document.getElementById('catLabelText').textContent = s.catLabel;
-  document.getElementById('startBtn').textContent = s.startBtn;
-  document.getElementById('retryBtn').textContent = s.retryBtn;
-  document.getElementById('changeCatBtn').textContent = s.changeCatBtn;
-  document.getElementById('finishBtn').textContent = s.finishBtn;
-  document.getElementById('resultTotal').textContent = s.outOf;
-  renderCategoryButtons();
-}
-
-document.querySelectorAll('.lang-btn').forEach(btn=>{
-  btn.onclick = ()=>{
-    playClick();
-    currentLang = btn.dataset.lang;
-    document.querySelectorAll('.lang-btn').forEach(b=>b.classList.remove('selected'));
-    btn.classList.add('selected');
-    applyLanguage();
-  };
-});
-
-function shuffle(arr){
-  return arr.map(v=>[Math.random(),v]).sort((a,b)=>a[0]-b[0]).map(v=>v[1]);
-}
-
-function buildQueue(){
-  // reshuffle full pool; avoid repeating any of the recently-asked questions right at the seam
-  const pool = shuffle(QUESTION_BANK[currentLang][currentCatKey]);
-  const recentCount = Math.min(3, Math.floor(pool.length/2));
-  const recent = questions.slice(-recentCount).map(q=>q.q);
-  for(let i=0;i<recentCount && recent.includes(pool[i].q);i++){
-    // push a later, non-recent question to the front instead
-    const swapIdx = pool.findIndex(p=>!recent.includes(p.q));
-    if(swapIdx > i){
-      [pool[i], pool[swapIdx]] = [pool[swapIdx], pool[i]];
-    }
-  }
-  questions = questions.concat(pool);
-}
-
-function startQuiz(){
-  playClick();
-  questions = [];
-  qIndex = 0; questionsAsked = 0; score = 0; wrong = 0; bestStreak = 0; curStreak = 0;
-  lives = MAX_LIVES; endedByGameOver = false;
-  renderLives();
-  buildQueue();
-  showScreen('quiz');
-  loadQuestion();
-}
-
-function loadQuestion(){
-  clearInterval(timerInterval);
-  if(qIndex >= questions.length) buildQueue();
-  const q = questions[qIndex];
-  questionsAsked++;
-  document.getElementById('qCounter').textContent = 'Q'+questionsAsked;
-  document.getElementById('scoreChip').textContent = UI_STRINGS[currentLang].scorePrefix+score;
-  document.getElementById('qText').textContent = q.q;
-
-  const meta = CATEGORY_META[currentCatKey];
-  const miniPoster = document.getElementById('miniPoster');
-  miniPoster.className = 'mini-poster ' + meta.cls;
-  miniPoster.textContent = meta.icon;
-
-  const wrap = document.getElementById('optionsWrap');
-  wrap.innerHTML = '';
-  const letters = ['A','B','C','D'];
-  q.opts.forEach((opt,i)=>{
-    const div = document.createElement('button');
-    div.className = 'opt';
-    div.innerHTML = `<span class="letter">${letters[i]}</span><span>${opt}</span>`;
-    div.onclick = ()=>selectAnswer(i);
-    wrap.appendChild(div);
-  });
-
-  timeLeft = TOTAL_TIME;
-  updateTimerDisplay();
-  timerInterval = setInterval(()=>{
-    timeLeft--;
-    updateTimerDisplay();
-    if(timeLeft>0 && timeLeft<=5) playTick();
-    if(timeLeft<=0){
-      clearInterval(timerInterval);
-      selectAnswer(-1);
-    }
-  },1000);
-}
-
-function updateTimerDisplay(){
-  document.getElementById('timerNum').textContent = timeLeft;
-  const bar = document.getElementById('timerBar');
-  const offset = CIRC - (timeLeft/TOTAL_TIME)*CIRC;
-  bar.style.strokeDashoffset = offset;
-  bar.style.stroke = timeLeft<=5 ? 'var(--coral)' : 'var(--gold)';
-}
-
-function selectAnswer(choice){
-  clearInterval(timerInterval);
-  const q = questions[qIndex];
-  const opts = document.querySelectorAll('.opt');
-  const correct = choice === q.a;
-  if(correct){
-    score++;
-    curStreak++;
-    if(curStreak > bestStreak) bestStreak = curStreak;
-    playCorrect();
-  } else {
-    wrong++;
-    curStreak = 0;
-    playWrong();
-    loseLife();
-  }
-
-  opts.forEach((el,i)=>{
-    el.onclick = null;
-    el.classList.add('locked');
-    if(i === q.a) el.classList.add('correct');
-    else if(i === choice) el.classList.add('wrong');
-    else el.classList.add('dim');
-  });
-
-  document.getElementById('scoreChip').textContent = UI_STRINGS[currentLang].scorePrefix+score;
-
-  setTimeout(()=>{
-    if(lives <= 0){
-      endedByGameOver = true;
-      playGameOver();
-      showResult();
-    } else {
-      qIndex++;
-      loadQuestion();
-    }
-  }, 1100);
-}
-
-function finishQuiz(){
-  clearInterval(timerInterval);
-  endedByGameOver = false;
-  playFinish();
-  showResult();
-}
-
-function showResult(){
-  showScreen('result');
-  const total = score + wrong;
-  const accuracy = total > 0 ? Math.round((score/total)*100) : 0;
-  document.getElementById('resultHeading').textContent = endedByGameOver ? UI_STRINGS[currentLang].gameOverHeading : '';
-  document.getElementById('resultScore').textContent = score;
-  document.getElementById('resultTotal').textContent = UI_STRINGS[currentLang].outOf;
-  const emoji = document.getElementById('resultEmoji');
-  const msg = document.getElementById('resultMsg');
-  const tier = UI_STRINGS[currentLang].messages.find(m=>accuracy>=m.min);
-  emoji.textContent = tier.emoji;
-  msg.textContent = tier.msg;
-
-  const s = UI_STRINGS[currentLang];
-  const statsWrap = document.getElementById('resultStats');
-  statsWrap.innerHTML = `
-    <div class="stat-box"><div class="stat-num">${accuracy}%</div><div class="stat-label">${s.statAccuracy}</div></div>
-    <div class="stat-box"><div class="stat-num">${bestStreak}</div><div class="stat-label">${s.statStreak}</div></div>
-    <div class="stat-box"><div class="stat-num">${wrong}</div><div class="stat-label">${s.statWrong}</div></div>
-  `;
-}
-
-document.getElementById('startBtn').onclick = startQuiz;
-document.getElementById('retryBtn').onclick = startQuiz;
-document.getElementById('changeCatBtn').onclick = ()=>showScreen('start');
-document.getElementById('finishBtn').onclick = finishQuiz;
-
-applyLanguage();
-</script>
-</body>
-</html>
+      {q:"Sabse bada mahasagar kaunsa hai?", opts:["Atlantic","Hind Mahasag
